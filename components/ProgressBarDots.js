@@ -1,13 +1,33 @@
 import { FontDisplay } from "expo-font";
 import { StyleSheet, View } from "react-native";
 
-export default function ProgressBarDots() {
+export default function ProgressBarDots({ pageNumber }) {
   return (
     <View style={styles.wrap}>
-      <View style={styles.dots}></View>
-      <View style={styles.dots}></View>
-      <View style={styles.dots}></View>
-      <View style={styles.dots}></View>
+      <View
+        style={[
+          styles.dots,
+          { backgroundColor: pageNumber === 1 ? "#0066FF" : "#D9D9D9" },
+        ]}
+      ></View>
+      <View
+        style={[
+          styles.dots,
+          { backgroundColor: pageNumber === 2 ? "#0066FF" : "#D9D9D9" },
+        ]}
+      ></View>
+      <View
+        style={[
+          styles.dots,
+          { backgroundColor: pageNumber === 3 ? "#0066FF" : "#D9D9D9" },
+        ]}
+      ></View>
+      <View
+        style={[
+          styles.dots,
+          { backgroundColor: pageNumber === 4 ? "#0066FF" : "#D9D9D9" },
+        ]}
+      ></View>
     </View>
   );
 }
@@ -15,7 +35,6 @@ export default function ProgressBarDots() {
 const styles = StyleSheet.create({
   wrap: {
     width: 100,
-    marginTop: 10,
     position: "relative",
     display: "flex",
     flexDirection: "row",

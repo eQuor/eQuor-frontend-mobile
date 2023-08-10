@@ -33,7 +33,7 @@ export default function App() {
   };
 
   return (
-    <NavigationContainer styles={styles.safeContainer}>
+    <NavigationContainer>
       <Stack.Navigator initialRouteName='Welcome'>
         <Stack.Screen name='Welcome' options={{ headerShown: false }}>
           {(props) => <WelcomePage {...props} fontsLoaded={fontsLoaded} />}
@@ -71,16 +71,3 @@ export default function App() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-  },
-  backgroundTexture: {
-    backgroundColor: "red",
-    width: "120%",
-    height: "150%",
-    transform: [{ rotate: "45deg" }],
-    position: "absolute",
-  },
-});

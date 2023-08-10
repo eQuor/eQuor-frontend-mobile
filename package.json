@@ -29,7 +29,8 @@
     "react-native-screens": "~3.20.0",
     "react-native-shadow-2": "^7.0.8",
     "react-native-svg": "^13.10.0",
-    "expo-barcode-scanner": "~12.3.2"
+    "expo-barcode-scanner": "~12.3.2",
+    "expo-location": "~15.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
