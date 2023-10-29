@@ -1,10 +1,55 @@
-import { StyleSheet, View, Text, TextInput } from "react-native";
-
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  Alert,
+} from "react-native";
+import { encode } from "base-64";
 import { StatusBar } from "expo-status-bar";
 import LargeBlueButton from "../components/LargeBlueButton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import ServerConfig from "../config/backendConfigurations";
+import { useNavigation } from "@react-navigation/native";
+import QRScanner from "./QRScanner";
 
 export default function Login({ fontsLoaded }) {
+  const navigation = useNavigation();
+
+  const [showScanner, setShowScanner] = useState(false);
+  const getAutherization = async (data) => {
+    console.log(data);
+    try {
+      await axios
+        .post(
+          ServerConfig.baseUrl +
+            ":" +
+            ServerConfig.port +
+            "/api/v1/auth/RegisterWithQR",
+          data,
+          {}
+        )
+        .then((response) => {
+          if (response.status === 200) {
+            navigation.navigate("Dashboard");
+          }
+        });
+    } catch (error) {
+      if (error.response === undefined) {
+        console.log("Connection error");
+      } else if (error.response.status === 401) {
+        Alert.alert(
+          "Incorrect credentials",
+          "Please double check your email and password",
+          [{ text: "Retry", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      }
+    }
+  };
+
   //for username
   const [username, setUsername] = useState("");
 
@@ -12,12 +57,55 @@ export default function Login({ fontsLoaded }) {
     setUsername(value);
   };
 
+  const handleLogin = async () => {
+    try {
+      console.log("aaa");
+      await axios
+        .post(
+          ServerConfig.baseUrl + ":" + ServerConfig.port + "/api/v1/auth/token",
+          {
+            requestDeviceCode: 1,
+          },
+          {
+            headers: {
+              Authorization: "Basic " + encode(username + ":" + password),
+              "Content-Type": "application/json",
+            },
+          }
+        )
+        .then((response) => {
+          if (response.status === 200) {
+            navigation.navigate("Dashboard");
+          }
+        });
+    } catch (error) {
+      if (error.response.status === 401) {
+        Alert.alert(
+          "Incorrect credentials",
+          "Please double check your email and password",
+          [{ text: "Retry", onPress: () => console.log("OK Pressed") }],
+          { cancelable: false }
+        );
+      }
+    }
+  };
+
   //for password
   const [password, setPassword] = useState("");
+  const [data, setData] = useState([]);
 
   const handlePasswordChange = (value) => {
     setPassword(value);
   };
+
+  if (showScanner) {
+    return (
+      <QRScanner
+        handleData={getAutherization}
+        afterScanner={setShowScanner}
+      ></QRScanner>
+    );
+  }
 
   return (
     <>
@@ -79,11 +167,18 @@ export default function Login({ fontsLoaded }) {
             </View>
           </View>
 
-          <LargeBlueButton
-            title='Login'
-            fontsLoaded={fontsLoaded}
-            onpress='Dashboard'
-          />
+          <Pressable style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>Login</Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.loginQRButton}
+            onPress={() => {
+              setShowScanner(true);
+            }}
+          >
+            <Text style={styles.loginQRButtonText}>Login using QRrrr</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -149,5 +244,38 @@ const styles = StyleSheet.create({
   label: {
     color: "#525050",
     fontSize: 20,
+  },
+
+  loginButton: {
+    width: 250,
+    height: 50,
+    backgroundColor: "#0066FF",
+    borderRadius: 10,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  loginButtonText: {
+    color: "white",
+    fontSize: 30,
+  },
+
+  loginQRButton: {
+    width: 250,
+    height: 50,
+    backgroundColor: "white",
+    borderRadius: 10,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+    borderColor: "#0066FF",
+    borderWidth: 2,
+  },
+
+  loginQRButtonText: {
+    color: "black",
+    fontSize: 30,
   },
 });

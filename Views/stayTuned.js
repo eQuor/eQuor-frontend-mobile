@@ -8,13 +8,6 @@ import { useNavigation } from "@react-navigation/native";
 export default function StayTuned({ fontsLoaded }) {
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.navigate("Registration successful");
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <>
       <View style={styles.welcomeWrap}>

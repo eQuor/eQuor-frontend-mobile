@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import { React, useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -13,11 +13,28 @@ import {
   Octicons,
   Feather,
 } from "@expo/vector-icons";
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
+import ServerConfig from "../config/backendConfigurations";
 
 function Chat({ setisNeededToLift, isNeededToLift }) {
   const [message, setMessage] = useState("");
   const [isMessageOptionsVisible, setMessageOptionVisibility] = useState(false);
   const [messageType, setMessageType] = useState(1);
+  let messageIndex = 0;
+  const [messages, setMessages] = useState([]);
+
+  const messagesList = messages.map((msg) => (
+    <MessageBubble
+      key={msg.index}
+      isIncoming={msg.isIncoming}
+      profilePicture={require("../assets/images/logo.png")}
+      name={msg.name}
+      message={msg.message}
+      time={msg.time}
+    ></MessageBubble>
+  ));
+  let client;
 
   const handleTypeMessage = (value) => {
     setMessage(value);
@@ -28,53 +45,70 @@ function Chat({ setisNeededToLift, isNeededToLift }) {
     setisNeededToLift(!isNeededToLift);
   };
 
+  const handleSendButton = () => {
+    if (client) {
+      client.activate();
+      client.publish({
+        destination: "/app/hello",
+        body: JSON.stringify({ name: message }),
+      });
+      const newList = messages;
+      newList.push({
+        index: messageIndex,
+        isIncoming: true,
+        profilePicture: "../assets/images/logo.png",
+        name: "Senith Uthsara",
+        message: message,
+        time: "9 mins ago",
+      });
+      messageIndex++;
+      setMessages(newList);
+    } else {
+      console.log("client not connected");
+    }
+  };
+
+  useEffect(() => {}, []);
+  client = new Client({
+    brokerURL: "ws://192.168.158.77:8080/gs-guide-websocket",
+    onConnect: () => {
+      console.log("mekwth wd krpnko oi");
+      client.subscribe("/topic/greetings", (message) =>
+        console.log(`Received: ${message.body}`)
+      );
+      client.publish({
+        destination: "/app/hello",
+        body: JSON.stringify({ name: "senith" }),
+      });
+    },
+    debug: (err) => {
+      console.log(err);
+    },
+    forceBinaryWSFrames: true,
+    appendMissingNULLonIncoming: true,
+  });
+
+  client.activate();
+  // stompClient.onConnect = (frame) => {
+
+  //   console.log("Connected: " + frame);
+  //   stompClient.subscribe("/topic/greetings", (greeting) => {
+  //     // alert(greeting);
+  //   });
+  // };
+
+  client.onWebSocketError = (error) => {
+    console.error("Error with websocket", error);
+  };
+
+  client.onStompError = (frame) => {
+    console.error("Broker reported error: " + frame.headers["message"]);
+    console.error("Additional details: " + frame.body);
+  };
+
   return (
     <View style={styles.chatContainer}>
-      <MessageBubble
-        isIncoming={true}
-        profilePicture={require("../assets/images/logo.png")}
-        name={"Senith Uthsara"}
-        message={"Bla Bla Bla"}
-        time={"9 mins ago"}
-      ></MessageBubble>
-
-      <MessageBubble
-        isIncoming={false}
-        profilePicture={require("../assets/images/logo.png")}
-        name={"Senith Uthsara"}
-        message={"Bla Bla Bla"}
-        time={"8 mins ago"}
-      ></MessageBubble>
-      <MessageBubble
-        isIncoming={true}
-        profilePicture={require("../assets/images/logo.png")}
-        name={"Senith Uthsara"}
-        message={"Bla Bla Bla"}
-        time={"7 mins ago"}
-      ></MessageBubble>
-      <MessageBubble
-        isIncoming={true}
-        profilePicture={require("../assets/images/logo.png")}
-        name={"Senith Uthsara"}
-        message={"Bla Bla Bla"}
-        time={"6 mins ago"}
-      ></MessageBubble>
-
-      <MessageBubble
-        isIncoming={false}
-        profilePicture={require("../assets/images/logo.png")}
-        name={"Senith Uthsara"}
-        message={"Bla Bla Bla"}
-        time={"5 mins ago"}
-      ></MessageBubble>
-
-      <MessageBubble
-        isIncoming={false}
-        profilePicture={require("../assets/images/logo.png")}
-        name={"Senith Uthsara"}
-        message={"Bla Bla Bla"}
-        time={"4 mins ago"}
-      ></MessageBubble>
+      {messagesList}
 
       <View style={styles.messageOptionsBar}>
         <Ionicons
@@ -89,12 +123,14 @@ function Chat({ setisNeededToLift, isNeededToLift }) {
           onChangeText={handleTypeMessage}
           value={message}
         />
-        <MaterialCommunityIcons
-          style={styles.icons}
-          name='send-circle'
-          size={30}
-          color='#4154F1'
-        />
+        <TouchableOpacity onPress={handleSendButton}>
+          <MaterialCommunityIcons
+            style={styles.icons}
+            name='send-circle'
+            size={30}
+            color='#4154F1'
+          />
+        </TouchableOpacity>
 
         <TouchableOpacity onPress={handleMessageOptionButton}>
           {messageType === 1 ? (
@@ -121,7 +157,6 @@ function Chat({ setisNeededToLift, isNeededToLift }) {
           )}
         </TouchableOpacity>
       </View>
-
       {isMessageOptionsVisible ? (
         <View style={styles.chatTypeSelector}>
           <TouchableOpacity

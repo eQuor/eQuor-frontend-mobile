@@ -32,7 +32,7 @@ export default function DeviceRegistered({ fontsLoaded }) {
         <LargeBlueButton
           title='GET STARTED'
           fontsLoaded={fontsLoaded}
-          onpress='Login'
+          onpress='Dashboard'
         />
       </View>
 

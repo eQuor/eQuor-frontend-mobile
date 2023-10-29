@@ -20,6 +20,7 @@ function Dashboard({ fontsLoaded, subject }) {
   const [scannedData, setScannedData] = useState("");
 
   useEffect(() => {
+    //barcode
     if (isNeededtoShowScanner) {
       (async () => {
         const { status } = await BarCodeScanner.requestPermissionsAsync();

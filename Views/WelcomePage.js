@@ -34,7 +34,7 @@ export default function WelcomePage({ fontsLoaded }) {
       <LargeBlueButton
         title='GET STARTED'
         fontsLoaded={fontsLoaded}
-        onpress='Register'
+        onpress='Login'
       />
 
       <StatusBar style='auto' />
