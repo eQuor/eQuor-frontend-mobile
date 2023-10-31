@@ -14,6 +14,8 @@ import WelcomePage from "./Views/WelcomePage";
 
 import RegisterDevice from "./Views/RegisterDevice";
 import Dashboard from "./Views/Dashboard";
+import HomePage from "./Views/HomePage";
+import EnterSession from "./Views/EnterSession";
 
 const Stack = createNativeStackNavigator();
 
@@ -58,14 +60,15 @@ export default function App() {
           {(props) => <Login {...props} fontsLoaded={fontsLoaded} />}
         </Stack.Screen>
 
+        <Stack.Screen name='Home' options={{ headerShown: false }}>
+          {(props) => <HomePage {...props} fontsLoaded={fontsLoaded} />}
+        </Stack.Screen>
+        <Stack.Screen name='Session' options={{ headerShown: false }}>
+          {(props) => <EnterSession {...props} fontsLoaded={fontsLoaded} />}
+        </Stack.Screen>
+
         <Stack.Screen name='Dashboard' options={{ headerShown: false }}>
-          {(props) => (
-            <Dashboard
-              {...props}
-              fontsLoaded={fontsLoaded}
-              subject={"1101 Database management System"}
-            />
-          )}
+          {(props) => <Dashboard {...props} fontsLoaded={fontsLoaded} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>

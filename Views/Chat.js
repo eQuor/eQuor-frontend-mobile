@@ -16,7 +16,9 @@ import {
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import ServerConfig from "../config/backendConfigurations";
+import { TextEncoder } from "text-encoding";
 
+global.TextEncoder = TextEncoder;
 function Chat({ setisNeededToLift, isNeededToLift }) {
   const [message, setMessage] = useState("");
   const [isMessageOptionsVisible, setMessageOptionVisibility] = useState(false);
@@ -70,10 +72,10 @@ function Chat({ setisNeededToLift, isNeededToLift }) {
 
   useEffect(() => {}, []);
   client = new Client({
-    brokerURL: "ws://192.168.158.77:8080/gs-guide-websocket",
+    brokerURL: "ws://192.168.43.69:3001/ws",
     onConnect: () => {
       console.log("mekwth wd krpnko oi");
-      client.subscribe("/topic/greetings", (message) =>
+      client.subscribe("/topic/hello", (message) =>
         console.log(`Received: ${message.body}`)
       );
       client.publish({
@@ -89,13 +91,6 @@ function Chat({ setisNeededToLift, isNeededToLift }) {
   });
 
   client.activate();
-  // stompClient.onConnect = (frame) => {
-
-  //   console.log("Connected: " + frame);
-  //   stompClient.subscribe("/topic/greetings", (greeting) => {
-  //     // alert(greeting);
-  //   });
-  // };
 
   client.onWebSocketError = (error) => {
     console.error("Error with websocket", error);
@@ -111,12 +106,6 @@ function Chat({ setisNeededToLift, isNeededToLift }) {
       {messagesList}
 
       <View style={styles.messageOptionsBar}>
-        <Ionicons
-          style={styles.icons}
-          name='hand-right-outline'
-          size={30}
-          color='#4154F1'
-        />
         <TextInput
           style={styles.messageInput}
           placeholder='Ask your question'
@@ -203,6 +192,7 @@ const styles = StyleSheet.create({
     position: "relative",
     display: "flex",
     alignItems: "center",
+    backgroundColor: "white",
   },
 
   messageOptionsBar: {

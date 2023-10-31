@@ -19,72 +19,50 @@ import QRScanner from "./QRScanner";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 
-export default function Login({ fontsLoaded }) {
+export default function EnterSession({ fontsLoaded }) {
   const navigation = useNavigation();
 
-  const [showScanner, setShowScanner] = useState(false);
-  const getAutherization = async (data) => {
-    console.log(data);
-    try {
-      await axios
-        .post(
-          ServerConfig.baseUrl +
-            ":" +
-            ServerConfig.port +
-            "/api/v1/auth/RegisterWithQR",
-          data,
-          {}
-        )
-        .then((response) => {
-          if (response.status === 200) {
-            navigation.navigate("Dashboard");
-          }
-        });
-    } catch (error) {
-      if (error.response === undefined) {
-        console.log("Connection error");
-      } else if (error.response.status === 401) {
-        Alert.alert(
-          "Incorrect credentials",
-          "Please double check your email and password",
-          [{ text: "Retry", onPress: () => console.log("OK Pressed") }],
-          { cancelable: false }
-        );
-      }
+  //for session code
+  const [sessionCode, setSessionCode] = useState("");
+
+  const handleSessionCodeChange = (value) => {
+    let characterCheck = /[a-zA-Z]/;
+    if (!characterCheck.test(value)) {
+      setSessionCode(value);
     }
   };
 
-  //for username
-  const [username, setUsername] = useState("");
-
-  const handleUsernameChange = (value) => {
-    setUsername(value);
-  };
-
-  const handleLogin = async () => {
+  const handleSubmit = async () => {
     try {
+      let result = await SecureStore.getItemAsync("jwtToken");
+      let token;
+      if (result) {
+        token = result;
+      } else {
+        alert("No values stored under that key.");
+      }
       console.log("aaa");
       await axios
-        .post(
-          ServerConfig.baseUrl + ":" + ServerConfig.port + "/api/v1/auth/token",
+        .get(
+          ServerConfig.baseUrl +
+            ":" +
+            ServerConfig.port +
+            `/api/v1/student/get-session?session_id=${sessionCode}`,
+
           {
-            requestDeviceCode: 1,
-          },
-          {
-            headers: {
-              Authorization: "Basic " + encode(username + ":" + password),
-              "Content-Type": "application/json",
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         )
         .then(async (response) => {
           if (response.status === 200) {
-            if (response.data.isAuth) {
-              let token = response.data.jwtToken;
-              console.log(token);
-              await SecureStore.setItemAsync("jwtToken", token);
+            if (response.data.isFound) {
+              await SecureStore.setItemAsync("session_id", sessionCode);
+              navigation.navigate("Dashboard", { session_id: 2 });
+            } else {
+              alert("Session not found");
+              setSessionCode("");
             }
-            navigation.navigate("Home");
+            // navigation.navigate("Home");
           }
         });
     } catch (error) {
@@ -97,23 +75,6 @@ export default function Login({ fontsLoaded }) {
     }
   };
 
-  //for password
-  const [password, setPassword] = useState("");
-  const [data, setData] = useState([]);
-
-  const handlePasswordChange = (value) => {
-    setPassword(value);
-  };
-
-  if (showScanner) {
-    return (
-      <QRScanner
-        handleData={getAutherization}
-        afterScanner={setShowScanner}
-      ></QRScanner>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.mainWrap}>
       <View style={styles.mainContent}>
@@ -124,7 +85,10 @@ export default function Login({ fontsLoaded }) {
             { fontFamily: fontsLoaded ? "Poppins-ExtraBold.ttf" : "System" },
           ]}
         >
-          Login
+          Ready to join?
+        </Text>
+        <Text style={styles.register_your_device}>
+          Join, chat, and check in
         </Text>
 
         <View style={styles.formContainer}>
@@ -137,49 +101,29 @@ export default function Login({ fontsLoaded }) {
                 },
               ]}
             >
-              Username:
+              Session code
             </Text>
             <TextInput
               style={styles.input}
-              placeholder='Enter Username'
-              onChangeText={handleUsernameChange}
-              value={username}
-            />
-          </View>
-
-          <View style={styles.fieldContainer}>
-            <Text
-              style={[
-                styles.label,
-                {
-                  fontFamily: fontsLoaded ? "Poppins-ExtraBold.ttf" : "System",
-                },
-              ]}
-            >
-              Password:
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder='Enter Password'
-              onChangeText={handlePasswordChange}
-              value={password}
-              secureTextEntry={true}
+              placeholder='Enter session code'
+              onChangeText={handleSessionCodeChange}
+              value={sessionCode}
             />
           </View>
         </View>
 
-        <TouchableOpacity style={styles.register_button} onPress={handleLogin}>
-          <Text style={styles.register_button_text}>Login</Text>
+        <TouchableOpacity style={styles.register_button} onPress={handleSubmit}>
+          <Text style={styles.register_button_text}>Join</Text>
         </TouchableOpacity>
 
         {/* <Pressable
-          style={styles.loginQRButton}
-          onPress={() => {
-            setShowScanner(true);
-          }}
-        >
-          <Text style={styles.loginQRButtonText}>Login using QRz</Text>
-        </Pressable> */}
+            style={styles.loginQRButton}
+            onPress={() => {
+              setShowScanner(true);
+            }}
+          >
+            <Text style={styles.loginQRButtonText}>Login using QRz</Text>
+          </Pressable> */}
       </View>
     </SafeAreaView>
   );
@@ -190,6 +134,13 @@ const styles = StyleSheet.create({
     marginRight: 60,
     width: 200,
     height: 280,
+  },
+  register_your_device: {
+    color: "#808080",
+    marginHorizontal: 20,
+    fontSize: 20,
+    textAlign: "center",
+    marginTop: 10,
   },
   mainWrap: {
     display: "flex",

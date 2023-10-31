@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { BarCodeScanner } from "expo-barcode-scanner";
-
+import * as SecureStore from "expo-secure-store";
+import axios from "axios";
 import Chat from "./Chat";
 import Polls from "./Polls";
 
@@ -13,13 +14,41 @@ const Tab = createMaterialTopTabNavigator();
 function Dashboard({ fontsLoaded, subject }) {
   const [isNeededToLift, setisNeededToLift] = useState(false);
   const [isNeededtoShowScanner, setIsNeededtoShowScanner] = useState(false);
+  const [sessionDetails, setSessionDetails] = useState({});
+  const [scannedCount, setScannedCount] = useState(0);
 
-  //barcode related hooks
-  const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [scannedData, setScannedData] = useState("");
+  const [hasPermission, setHasPermission] = useState(null);
+  const [scannedData, setScannedData] = useState([]);
+
+  const getSessiondetails = async () => {
+    let result = await SecureStore.getItemAsync("session_id");
+    let token = await SecureStore.getItemAsync("jwtToken");
+    await axios
+      .get(
+        ServerConfig.baseUrl +
+          ":" +
+          ServerConfig.port +
+          `/api/v1/session/${result}`,
+
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then(async (response) => {
+        if (response.status === 200) {
+          if (response.data === null) {
+            alert("No session");
+          } else {
+            setSessionDetails(response.data);
+          }
+          // navigation.navigate("Home");
+        }
+      });
+  };
 
   useEffect(() => {
+    getSessiondetails();
     //barcode
     if (isNeededtoShowScanner) {
       (async () => {
@@ -29,11 +58,50 @@ function Dashboard({ fontsLoaded, subject }) {
     }
   }, [isNeededtoShowScanner]);
 
-  const handleBarCodeScanned = ({ data }) => {
+  const handleBarCodeScanned = async ({ data }) => {
     setScanned(true);
-    setScannedData(data);
+    const newData = scannedData;
+    newData.push(data);
+    setScannedData(newData);
+
     console.log(data);
-    setIsNeededtoShowScanner(!isNeededtoShowScanner);
+    if (scannedCount > 5) {
+      setIsNeededtoShowScanner(!isNeededtoShowScanner);
+      alert(scannedData);
+      const codes = {
+        codes: scannedData,
+      };
+      alert(codes);
+      try {
+        await axios
+          .post(
+            ServerConfig.baseUrl +
+              ":" +
+              ServerConfig.port +
+              "/api/v1/student/mark-attendance",
+            codes,
+            {}
+          )
+          .then((response) => {
+            if (response.status === 200) {
+              navigation.navigate("Dashboard");
+            }
+          });
+      } catch (error) {
+        if (error.response === undefined) {
+          console.log("Connection error");
+        } else if (error.response.status === 401) {
+          Alert.alert(
+            "Incorrect credentials",
+            "Please double check your email and password",
+            [{ text: "Retry", onPress: () => console.log("OK Pressed") }],
+            { cancelable: false }
+          );
+        }
+      }
+    }
+    const newCount = scannedCount + 1;
+    setScannedCount(newCount);
     setScanned(false);
   };
 
@@ -57,7 +125,7 @@ function Dashboard({ fontsLoaded, subject }) {
             { fontFamily: fontsLoaded ? "Poppins-ExtraBold.ttf" : "System" },
           ]}
         >
-          {subject}
+          {sessionDetails.session_name}
         </Text>
         <Tab.Navigator
           screenOptions={{
@@ -70,13 +138,13 @@ function Dashboard({ fontsLoaded, subject }) {
               fontSize: 16,
               fontWeight: "bold",
               fontFamily: fontsLoaded ? "Poppins-ExtraBold.ttf" : "System",
-              color: "#4154F1",
+              color: "black",
             },
             tabBarIndicatorStyle: { backgroundColor: "#4154F1" },
           }}
         >
           <Tab.Screen
-            name='Q&A'
+            name='Chat'
             options={{ headerShown: false }}
             children={(props) => (
               <Chat
@@ -99,7 +167,6 @@ function Dashboard({ fontsLoaded, subject }) {
           onPress={() => setIsNeededtoShowScanner(!isNeededtoShowScanner)}
         >
           <Ionicons name='ios-qr-code' size={40} color='white' />
-          <Text style={styles.floatingButtonText}>Mark your attendance</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -121,9 +188,9 @@ const styles = StyleSheet.create({
   },
 
   floatingButton: {
-    backgroundColor: "#4154F1",
+    backgroundColor: "#6C63FF",
     position: "absolute",
-    width: 180,
+    width: 80,
     height: 80,
     right: 20,
     borderRadius: 50,

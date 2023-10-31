@@ -1,4 +1,11 @@
-import { StyleSheet, View, Text } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  SafeAreaView,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import ProgressBarDots from "../components/ProgressBarDots";
 import { StatusBar } from "expo-status-bar";
 import Gif from "react-native-gif";
@@ -9,90 +16,62 @@ export default function StayTuned({ fontsLoaded }) {
   const navigation = useNavigation();
 
   return (
-    <>
-      <View style={styles.welcomeWrap}>
-        <View style={styles.backgroundTexture}></View>
-        <View style={styles.ProgressBarDotsContainer}>
-          <ProgressBarDots />
-        </View>
+    <SafeAreaView style={styles.mainWrap}>
+      <Gif
+        source={require("../assets/gifs/bear-working.gif")}
+        style={{
+          width: 400,
+          height: 400,
+        }}
+      />
 
-        <View style={styles.mainContent}>
-          <Text
-            style={[
-              styles.welcome_text,
-              { fontFamily: fontsLoaded ? "Poppins-ExtraBold.ttf" : "System" },
-            ]}
-          >
-            Stay tuned
-          </Text>
-
-          <Gif
-            source={require("../assets/gifs/clock.gif")}
-            style={{ width: 300, height: 300 }}
-          />
-          <Text
-            style={[
-              styles.quote_text,
-              { fontFamily: fontsLoaded ? "Poppins-ExtraBold.ttf" : "System" },
-            ]}
-          >
-            Your Registration is{"\n"} in Progress !
-          </Text>
-        </View>
-      </View>
+      <Text style={styles.just_one_small}>Hang Tight!</Text>
+      <Text style={styles.register_your_device}>
+        Our bear is working hard on your request. Please be patient, we'll be
+        back soon.
+      </Text>
 
       <StatusBar style='auto' />
-    </>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  welcome_text: {
-    color: "#0066FF",
-    fontSize: 60,
+  mainWrap: {
+    display: "flex",
+    alignItems: "center",
+    flex: 1,
+    backgroundColor: "white",
+    justifyContent: "center",
   },
 
-  quote_text: {
-    color: "#0066FF",
+  just_one_small: {
+    color: "black",
     fontSize: 30,
-    textAlign: "center",
+    fontWeight: "bold",
   },
 
-  get_started_button: {
+  register_your_device: {
+    color: "#808080",
+    marginHorizontal: 20,
+    fontSize: 20,
+    textAlign: "center",
+    marginTop: 10,
+  },
+
+  register_button: {
+    backgroundColor: "#6C63FF",
     width: 250,
     height: 50,
-    backgroundColor: "#0066FF",
-    borderRadius: 10,
+    borderRadius: 50,
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
+    top: 100,
   },
-
-  getStarted_button_text: {
+  register_button_text: {
     color: "white",
-    fontSize: 30,
-  },
-
-  welcomeWrap: {
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    justifyContent: "space-around",
-    alignItems: "center",
-    backgroundColor: "#E6F0FF",
-  },
-
-  mainContent: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  backgroundTexture: {
-    backgroundColor: "#FFFFFF",
-    width: "120%",
-    height: "150%",
-    transform: [{ rotate: "45deg" }],
-    position: "absolute",
+    fontSize: 20,
   },
 });
