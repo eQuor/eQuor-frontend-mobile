@@ -81,8 +81,10 @@ export default function Login({ fontsLoaded }) {
           if (response.status === 200) {
             if (response.data.isAuth) {
               let token = response.data.jwtToken;
+              let userName = response.data.username;
               console.log(token);
               await SecureStore.setItemAsync("jwtToken", token);
+              await SecureStore.setItemAsync("username", username);
             }
             navigation.navigate("Home");
           }

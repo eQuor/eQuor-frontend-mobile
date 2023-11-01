@@ -35,8 +35,17 @@ export default function HomePage({ fontsLoaded }) {
   const handleBarCodeScanned = async ({ data }) => {
     setScanned(true);
     setScannedData(data);
+    // console.log(JSON.parse(data).qrString);
+    let qrString = "";
+    try {
+      qrString = JSON.parse(data).qrString;
+    } catch (error) {
+      console.log();
+      console.log("Not a json");
+    }
 
     const deviceInfo = {
+      scannedQR: qrString,
       brand: Device.brand.toString(),
       deviceName: Device.deviceName.toString(),
       manufacturer: Device.manufacturer.toString(),

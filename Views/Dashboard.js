@@ -7,6 +7,7 @@ import { BarCodeScanner } from "expo-barcode-scanner";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import Chat from "./Chat";
+import { useNavigation } from "@react-navigation/native";
 import Polls from "./Polls";
 
 const Tab = createMaterialTopTabNavigator();
@@ -16,6 +17,7 @@ function Dashboard({ fontsLoaded, subject }) {
   const [isNeededtoShowScanner, setIsNeededtoShowScanner] = useState(false);
   const [sessionDetails, setSessionDetails] = useState({});
   const [scannedCount, setScannedCount] = useState(0);
+  const navigation = useNavigation();
 
   const [scanned, setScanned] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
@@ -24,6 +26,7 @@ function Dashboard({ fontsLoaded, subject }) {
   const getSessiondetails = async () => {
     let result = await SecureStore.getItemAsync("session_id");
     let token = await SecureStore.getItemAsync("jwtToken");
+
     await axios
       .get(
         ServerConfig.baseUrl +
@@ -49,6 +52,8 @@ function Dashboard({ fontsLoaded, subject }) {
 
   useEffect(() => {
     getSessiondetails();
+    setScannedData([]);
+    setScannedCount(0);
     //barcode
     if (isNeededtoShowScanner) {
       (async () => {
@@ -61,48 +66,76 @@ function Dashboard({ fontsLoaded, subject }) {
   const handleBarCodeScanned = async ({ data }) => {
     setScanned(true);
     const newData = scannedData;
-    newData.push(data);
+    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    if (newData[newData.length - 1] === data) {
+      alert(scannedCount);
+      setScanned(false);
+    } else {
+      newData.push(data);
+      setScannedData(newData);
+      const newCount = scannedCount + 1;
+      setScannedCount(newCount);
+    }
+
+    setScanned(false);
+
     setScannedData(newData);
 
-    console.log(data);
-    if (scannedCount > 5) {
+    if (scannedCount === 7) {
+      setScanned(true);
       setIsNeededtoShowScanner(!isNeededtoShowScanner);
-      alert(scannedData);
+      alert(JSON.stringify(scannedData));
       const codes = {
         codes: scannedData,
       };
       alert(codes);
+      const stringData = scannedData;
+      const intData = stringData.map((el) => {
+        return parseInt(el);
+      });
+      alert(JSON.stringify(intData));
       try {
+        let result = await SecureStore.getItemAsync("jwtToken");
+        let token;
+        if (result) {
+          token = result;
+        } else {
+          alert("No values stored under that key.");
+        }
         await axios
           .post(
             ServerConfig.baseUrl +
               ":" +
               ServerConfig.port +
               "/api/v1/student/mark-attendance",
-            codes,
-            {}
+            {
+              sessionId: 33,
+              codes: intData,
+            },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
           )
           .then((response) => {
             if (response.status === 200) {
               navigation.navigate("Dashboard");
+              if (response.data.isMarked) {
+                alert("You're in the clear!");
+              } else {
+                alert(response.data.error);
+              }
+            } else if (response.status === 401) {
+              alert("Unauthorized");
+            } else {
+              alert("Unexpected error!");
             }
           });
       } catch (error) {
-        if (error.response === undefined) {
-          console.log("Connection error");
-        } else if (error.response.status === 401) {
-          Alert.alert(
-            "Incorrect credentials",
-            "Please double check your email and password",
-            [{ text: "Retry", onPress: () => console.log("OK Pressed") }],
-            { cancelable: false }
-          );
-        }
+        //implement
+        console.log(error);
+        alert("Error");
       }
     }
-    const newCount = scannedCount + 1;
-    setScannedCount(newCount);
-    setScanned(false);
   };
 
   if (isNeededtoShowScanner) {

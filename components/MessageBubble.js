@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Image, Text, StyleSheet } from "react-native";
 
-function MessageBubble({ isIncoming, profilePicture, name, message, time }) {
+function MessageBubble({ isIncoming, name, message }) {
   return (
     <View
       style={[
@@ -10,17 +10,10 @@ function MessageBubble({ isIncoming, profilePicture, name, message, time }) {
       ]}
     >
       <View style={styles.bubbleContainer}>
-        <Image
-          source={profilePicture}
-          style={styles.profilePicture}
-          resizeMode='cover'
-        ></Image>
         <View style={styles.textContainer}>
           <Text style={styles.senderName}>{name}</Text>
           <Text style={styles.message}>{message}</Text>
         </View>
-
-        <Text style={styles.time}>{time}</Text>
       </View>
     </View>
   );
@@ -30,20 +23,22 @@ const styles = StyleSheet.create({
   bubbleBar: {
     width: "100%",
     marginVertical: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 0,
     display: "flex",
+    position: "relative",
   },
   bubbleContainer: {
     display: "flex",
     flexDirection: "row",
+    marginRight: 10,
     width: 270,
-    height: 70,
-    alignItems: "center",
-    paddingHorizontal: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     backgroundColor: "#F2F2FF",
     borderRadius: 20,
     elevation: 3,
     position: "relative",
+    marginRight: "auto",
   },
 
   profilePicture: {
@@ -53,7 +48,7 @@ const styles = StyleSheet.create({
   },
 
   textContainer: {
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     display: "flex",
     justifyContent: "center",
   },
@@ -63,7 +58,7 @@ const styles = StyleSheet.create({
   },
 
   message: {
-    fontSize: 15,
+    fontSize: 11,
   },
 
   time: {
